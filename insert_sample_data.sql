@@ -160,8 +160,8 @@ SELECT 1, user_id FROM user_accounts LIMIT 30;
 INSERT INTO two_factor_auth (user_id, user_two_factor)
 SELECT user_id, (RAND() > 0.5) FROM user_accounts LIMIT 30;
 
--- notification
-INSERT INTO notification (user_id, notification)
+-- notification_settings
+INSERT INTO notification_settings (user_id, is_notification_enabled)
 SELECT user_id, TRUE FROM user_accounts LIMIT 30;
 
 -- user_mypage

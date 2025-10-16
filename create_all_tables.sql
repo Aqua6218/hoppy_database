@@ -91,10 +91,10 @@ CREATE TABLE two_factor_auth (
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
--- notification: 通知設定
-CREATE TABLE notification (
+-- notification_settings: 通知設定
+CREATE TABLE notification_settings (
     user_id CHAR(36) NOT NULL PRIMARY KEY COMMENT 'ユーザーID (主キー・外部キー: user_accounts.user_id)',
-    notification BOOLEAN NOT NULL DEFAULT TRUE COMMENT '通知設定 (1=ON, 0=OFF)',
+    is_notification_enabled BOOLEAN NOT NULL DEFAULT TRUE COMMENT '通知設定 (1=ON, 0=OFF)',
     
     FOREIGN KEY (user_id) REFERENCES user_accounts(user_id)
         ON UPDATE CASCADE ON DELETE CASCADE
