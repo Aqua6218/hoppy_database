@@ -549,30 +549,44 @@ CREATE TABLE incident_reports (
         ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
+-- ======================================================================
+-- 完了メッセージ (Hoppy_DB)
+-- ======================================================================
+-- Hoppy_DBのテーブル作成が完了しました
 
+-- ======================================================================
+-- セクション 7: 管理者データベース (セキュリティ分離)
+-- ======================================================================
+
+-- 管理者用データベースの作成と使用
+CREATE DATABASE IF NOT EXISTS admin_DB;
+USE admin_DB;
 
 -- admin_users: 管理者ユーザー
 CREATE TABLE admin_users (
-    admin_id INT PRIMARY KEY AUTO_INCREMENT,
-    admin_first_name VARCHAR(10),
-    admin_last_name VARCHAR(10),
-    admin_birthday DATE,
-    admin_mail VARCHAR(255)
+    admin_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '管理者ID',
+    admin_first_name VARCHAR(10) COMMENT '名',
+    admin_last_name VARCHAR(10) COMMENT '姓',
+    admin_birthday DATE COMMENT '生年月日',
+    admin_mail VARCHAR(255) COMMENT 'メールアドレス'
 );
 
 -- admin_authorities: 管理者権限
 CREATE TABLE admin_authorities (
-    admin_permission_id INT PRIMARY KEY AUTO_INCREMENT,
-    admin_id INT NOT NULL,
-    admin_user_post_perms INT DEFAULT 0,
-    admin_inquiry_perms INT DEFAULT 0,
-    admin_contract_type_perms INT DEFAULT 0,
-    admin_admin_users INT DEFAULT 0,
+    admin_permission_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '権限ID',
+    admin_id INT NOT NULL COMMENT '管理者ID (外部キー: admin_users.admin_id)',
+    admin_user_post_perms INT DEFAULT 0 COMMENT 'ユーザー投稿管理権限 (0=なし, 1=あり)',
+    admin_inquiry_perms INT DEFAULT 0 COMMENT 'お問い合わせ管理権限 (0=なし, 1=あり)',
+    admin_contract_type_perms INT DEFAULT 0 COMMENT '契約タイプ管理権限 (0=なし, 1=あり)',
+    admin_admin_users INT DEFAULT 0 COMMENT '管理者ユーザー管理権限 (0=なし, 1=あり)',
+    
     FOREIGN KEY (admin_id) REFERENCES admin_users(admin_id)
+        ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- ======================================================================
 -- 完了メッセージ
 -- ======================================================================
 -- すべてのテーブルの作成が完了しました
--- データベース: Hoppy_DB
+-- データベース: Hoppy_DB (メインデータベース)
+-- データベース: admin_DB (管理者データベース - セキュリティ分離)

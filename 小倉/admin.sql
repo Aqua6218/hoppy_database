@@ -1,7 +1,12 @@
--- CREATE DATABASES.
+-- ======================================================================
+-- 管理者データベーステーブル定義
+-- 注意: これらのテーブルはセキュリティ上、admin_DBに配置されます
+-- create_all_tables.sqlに統合済み
+-- ======================================================================
 
+-- USE admin_DB;
 
--- CREATE TABLE for user accunt
+-- CREATE TABLE for user account
 CREATE TABLE admin_users (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
     admin_first_name VARCHAR(10),
