@@ -2,7 +2,6 @@
 -- admin_DB にサンプルデータを挿入
 -- ======================================================================
 
-USE admin_DB;
 
 -- admin_users テーブルのサンプルデータ
 INSERT INTO admin_users (admin_first_name, admin_last_name, admin_birthday, admin_mail) VALUES

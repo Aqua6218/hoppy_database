@@ -1,6 +1,5 @@
 -- CREATE DATABASES.
-CREATE DATABASE admin_DB;
-USE admin_DB;
+
 
 -- CREATE TABLE for user accunt
 CREATE TABLE admin_users (
