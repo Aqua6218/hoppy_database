@@ -131,7 +131,7 @@ CREATE TABLE user_mypage (
     announcement_id INT COMMENT 'お知らせID',
     
     -- 6. transaction_id (取引ID) - 外部キー (取引管理テーブルを参照)
-    transaction_id CHAR(32) COMMENT '取引ID (外部キー: transactions.transaction_id)',
+    transaction_id CHAR(36) COMMENT '取引ID (外部キー: transaction.transaction_id)',
     
     -- 外部キー制約の定義
     FOREIGN KEY (user_id) REFERENCES user_accounts(user_id)
@@ -142,7 +142,7 @@ CREATE TABLE user_mypage (
 );
 
 
-CREATE TABLE 2FA (
+CREATE TABLE two_factor_auth (
     -- 1. user_ID (ユーザーID) - 主キーかつ外部キー (user_accountsを参照)
     user_id CHAR(36) NOT NULL PRIMARY KEY COMMENT 'ユーザーID (主キー・外部キー: user_accounts.user_id)',
     
@@ -175,7 +175,7 @@ CREATE TABLE total_sales (
     total_sales_id CHAR(32) NOT NULL PRIMARY KEY COMMENT '売上ID',
     
     -- 2. transaction_id (取引ID) - 外部キー (取引管理テーブルを参照)
-    transaction_id CHAR(32) NOT NULL COMMENT '取引ID (外部キー: transactions.transaction_id)',
+    transaction_id CHAR(36) NOT NULL COMMENT '取引ID (外部キー: transaction.transaction_id)',
     
     -- 3. user_ID (ユーザーID) - 外部キー (user_accountsを参照)
     user_id CHAR(36) NOT NULL COMMENT 'ユーザーID (外部キー: user_accounts.user_id)',
@@ -387,7 +387,7 @@ CREATE TABLE Products (
 
 CREATE TABLE transaction (
     -- 1. transaction_ID (取引ID) - 主キー
-    transaction_id CHAR(32) NOT NULL PRIMARY KEY COMMENT '取引ID',
+    transaction_id CHAR(36) NOT NULL PRIMARY KEY COMMENT '取引ID',
     
     -- 2. seller_ID (出品者ID) - 外部キー (user_accountsを参照)
     seller_id CHAR(36) NOT NULL COMMENT '出品者ID (外部キー: user_accounts.user_id)',
@@ -401,19 +401,22 @@ CREATE TABLE transaction (
     -- 5. transaction_status_ID (取引ステータスID) - 外部キー (transaction_status_masterを参照)
     transaction_status_id INT NOT NULL COMMENT '取引ステータスID (外部キー: transaction_status_master.transaction_status_id)',
     
-    -- 6. completed_at (取引完了日時)
+    -- 6. started_at (取引開始日時)
+    started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '取引開始日時',
+    
+    -- 7. completed_at (取引完了日時)
     completed_at DATETIME COMMENT '取引完了日時',
     
-    -- 7. requested_at (取引開始日時)
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '取引開始日時',
+    -- 8. shipped_at (配送期限)
+    shipped_at DATETIME COMMENT '配送期限',
     
-    -- 8. returned_at (返却日時) - レンタル取引の場合
+    -- 9. returned_at (返却日時) - レンタル取引の場合
     returned_at DATETIME COMMENT '返却日時',
     
-    -- 9. guarantee_ID (保証ID) - 外部キー (guarantee_masterを参照)
-    guarantee_id INT COMMENT '保証ID (外部キー: guarantee_master.guarantee_id)',
+    -- 10. is_warranty_service (保証サービスプラン)
+    is_warranty_service BOOLEAN DEFAULT FALSE COMMENT '保証サービスプラン (TRUE/FALSE)',
     
-    -- 10. transaction_type_ID (取引種別ID) - 外部キー (transaction_type_masterを参照)
+    -- 11. transaction_type_ID (取引種別ID) - 外部キー (transaction_type_masterを参照)
     transaction_type_id INT NOT NULL COMMENT '取引種別ID (外部キー: transaction_type_master.transaction_type_id)',
 
     -- 外部キー制約の定義
@@ -432,10 +435,6 @@ CREATE TABLE transaction (
     FOREIGN KEY (transaction_status_id) REFERENCES transaction_status_master(transaction_status_id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
-        
-    FOREIGN KEY (guarantee_id) REFERENCES guarantee_master(guarantee_id)
-        ON UPDATE CASCADE
-        ON DELETE SET NULL,
         
     FOREIGN KEY (transaction_type_id) REFERENCES transaction_type_master(transaction_type_id)
         ON UPDATE CASCADE
@@ -489,23 +488,6 @@ CREATE TABLE product_like (
     FOREIGN KEY (user_id) REFERENCES user_accounts(user_id)
         ON UPDATE CASCADE
         ON DELETE CASCADE
-);
-
-CREATE TABLE transaction_status_master (
-    -- 1. transaction_status_id (取引ステータスID) - 主キー
-    transaction_status_id INT NOT NULL PRIMARY KEY COMMENT '取引ステータスID',
-    
-    -- 2. transaction_status_name (取引ステータス名) - 例: 配送待ち、使用中、返却待ち、評価待ち
-    transaction_status_name VARCHAR(20) NOT NULL UNIQUE COMMENT '取引ステータス名'
-);
-
-
-CREATE TABLE public_master (
-    -- 1. public_id (公開状態ID) - 主キー
-    public_id INT NOT NULL PRIMARY KEY COMMENT '公開状態ID',
-    
-    -- 2. public_name (公開状態名) - 例: 公開、非公開、一時停止済み
-    public_name VARCHAR(20) NOT NULL UNIQUE COMMENT '公開状態名'
 );
 
 CREATE TABLE Tag (
@@ -563,51 +545,6 @@ CREATE TABLE evaluation (
         ON DELETE RESTRICT
 );
 
-CREATE TABLE transaction (
-    -- 1. transaction_id (取引ID) - 主キー
-    transaction_id CHAR(36) NOT NULL PRIMARY KEY COMMENT '取引ID',
-    
-    -- 2. seller_id (出品者ID) - 外部キー (user_accountsを参照)
-    seller_id CHAR(36) NOT NULL COMMENT '出品者ID (外部キー: user_accounts.user_id)',
-    
-    -- 3. buyer_id (購入者ID) - 外部キー (user_accountsを参照)
-    buyer_id CHAR(36) NOT NULL COMMENT '購入者ID (外部キー: user_accounts.user_id)',
-    
-    -- 4. product_id (商品ID) - 外部キー (Productsを参照)
-    product_id CHAR(32) NOT NULL COMMENT '商品ID (外部キー: Products.product_id)',
-    
-    -- 6. started_at (取引開始日時)
-    started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '取引開始日時',
-    
-    -- 7. completed_at (取引終了日時)
-    completed_at DATETIME COMMENT '取引終了日時 (NULL可)',
-    
-    -- 8. shipped_at (配送期限 - 配送が完了すべき期限)
-    shipped_at DATETIME COMMENT '配送期限 (NULL可)',
-    
-    -- 9. returned_at (返送期限 - レンタル等で返送が完了すべき期限)
-    returned_at DATETIME COMMENT '返送期限 (NULL可)',
-    
-    -- 10. is_warranty_service (保証サービスプラン)
-    is_warranty_service BOOLEAN DEFAULT FALSE COMMENT '保証サービスプラン (TRUE/FALSE, NULL可)',
-    
-    -- 11. transaction_type_id (取引種別ID) - 外部キー (transaction_type_masterを参照)
-    transaction_type_id INT NOT NULL COMMENT '取引種別ID (外部キー: transaction_type_master.transaction_type_id)',
-    
-    -- 外部キー制約の定義
-    FOREIGN KEY (seller_id) REFERENCES user_accounts(user_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
-    
-    FOREIGN KEY (buyer_id) REFERENCES user_accounts(user_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
-        
-    FOREIGN KEY (product_id) REFERENCES Products(product_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
-        
-    FOREIGN KEY (transaction_type_id) REFERENCES transaction_type_master(transaction_type_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT
-);
-
 CREATE TABLE purchase_permission (
     -- 2. transaction_id (取引ID) - 複合主キーの一部、外部キー (transactionを参照)
     transaction_id CHAR(36) NOT NULL COMMENT '取引ID (外部キー: transaction.transaction_id)',
@@ -636,10 +573,9 @@ CREATE TABLE public_master (
     -- 1. public_id (公開状態ID) - 主キー
     public_id INT NOT NULL PRIMARY KEY COMMENT '公開状態ID',
     
-    -- 2. public_type_name (公開状態名称)
-    public_type_name VARCHAR(20) NOT NULL COMMENT '公開状態名称 (例: 公開, 非公開, 削除済み)'
+    -- 2. public_name (公開状態名)
+    public_name VARCHAR(20) NOT NULL UNIQUE COMMENT '公開状態名 (例: 公開, 非公開, 一時停止済み)'
 );
-
 
 CREATE TABLE deal_penalties (
     -- 1. penalty_ID (ペナルティID) - 主キー
